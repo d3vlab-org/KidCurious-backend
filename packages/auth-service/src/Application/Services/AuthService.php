@@ -28,6 +28,30 @@ class AuthService
     }
 
     /**
+     * Register a new user with email and password
+     */
+    public function register(string $email, string $password, array $metadata = []): array
+    {
+        return $this->authRepository->register($email, $password, $metadata);
+    }
+
+    /**
+     * Login user with email and password
+     */
+    public function login(string $email, string $password): array
+    {
+        return $this->authRepository->login($email, $password);
+    }
+
+    /**
+     * Logout user by invalidating the token
+     */
+    public function logout(string $token): array
+    {
+        return $this->authRepository->logout($token);
+    }
+
+    /**
      * Get user by ID
      */
     public function getUserById(string $userId): ?User

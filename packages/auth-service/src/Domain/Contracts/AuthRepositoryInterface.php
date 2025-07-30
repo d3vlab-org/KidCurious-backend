@@ -8,6 +8,21 @@ use KidsQaAi\AuthService\Domain\ValueObjects\AuthToken;
 interface AuthRepositoryInterface
 {
     /**
+     * Register a new user with email and password
+     */
+    public function register(string $email, string $password, array $metadata = []): array;
+
+    /**
+     * Login user with email and password
+     */
+    public function login(string $email, string $password): array;
+
+    /**
+     * Logout user by invalidating the token
+     */
+    public function logout(string $token): array;
+
+    /**
      * Validate JWT token and return user information
      */
     public function validateToken(string $token): ?User;

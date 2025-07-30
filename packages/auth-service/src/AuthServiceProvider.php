@@ -40,8 +40,13 @@ class AuthServiceProvider extends ServiceProvider
             __DIR__.'/../config/auth-service.php' => config_path('auth-service.php'),
         ], 'auth-service-config');
 
-        // Load routes
-        $this->loadRoutesFrom(__DIR__.'/Presentation/routes/api.php');
+        // Load routes with API prefix
+        $this->app['router']->group([
+            'prefix' => 'api',
+            'middleware' => 'api',
+        ], function () {
+            $this->loadRoutesFrom(__DIR__.'/Presentation/routes/api.php');
+        });
 
         // Load migrations
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');

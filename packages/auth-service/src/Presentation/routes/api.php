@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use KidsQaAi\AuthService\Presentation\Controllers\AuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,6 +16,9 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('auth')->group(function () {
 
     // Public routes (no authentication required)
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+
     Route::post('/validate-token', function () {
         return response()->json(['message' => 'Token validation endpoint']);
     });
@@ -29,12 +33,8 @@ Route::prefix('auth')->group(function () {
     // Protected routes (require authentication)
     Route::middleware(['supabase.auth'])->group(function () {
 
-        Route::get('/me', function () {
-            return response()->json([
-                'user' => request()->get('auth_user'),
-                'context' => request()->get('auth_context')
-            ]);
-        });
+        Route::get('/me', [AuthController::class, 'me']);
+        Route::post('/logout', [AuthController::class, 'logout']);
 
         Route::post('/refresh-context', function () {
             return response()->json([

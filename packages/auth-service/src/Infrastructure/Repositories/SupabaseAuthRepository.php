@@ -24,6 +24,155 @@ class SupabaseAuthRepository implements AuthRepositoryInterface
     }
 
     /**
+     * Register a new user with email and password
+     */
+    public function register(string $email, string $password, array $metadata = []): array
+    {
+        try {
+            $response = Http::withHeaders([
+                'apikey' => $this->supabaseAnonKey,
+                'Content-Type' => 'application/json',
+            ])->post("{$this->supabaseUrl}/auth/v1/signup", [
+                'email' => $email,
+                'password' => $password,
+                'data' => $metadata,
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+
+                // Store user in local database
+                if (isset($data['user'])) {
+                    DB::table('users')->updateOrInsert(
+                        ['id' => $data['user']['id']],
+                        [
+                            'email' => $data['user']['email'],
+                            'user_metadata' => json_encode($data['user']['user_metadata'] ?? []),
+                            'app_metadata' => json_encode($data['user']['app_metadata'] ?? []),
+                            'created_at' => $data['user']['created_at'],
+                            'updated_at' => $data['user']['updated_at'] ?? now(),
+                        ]
+                    );
+                }
+
+                return [
+                    'success' => true,
+                    'user' => $data['user'] ?? null,
+                    'session' => $data['session'] ?? null,
+                    'access_token' => $data['access_token'] ?? null,
+                ];
+            }
+
+            return [
+                'success' => false,
+                'error' => $response->json()['msg'] ?? 'Registration failed',
+            ];
+        } catch (\Exception $e) {
+            \Log::error('Registration failed', [
+                'email' => $email,
+                'error' => $e->getMessage()
+            ]);
+
+            return [
+                'success' => false,
+                'error' => 'Registration failed: ' . $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Login user with email and password
+     */
+    public function login(string $email, string $password): array
+    {
+        try {
+            $response = Http::withHeaders([
+                'apikey' => $this->supabaseAnonKey,
+                'Content-Type' => 'application/json',
+            ])->post("{$this->supabaseUrl}/auth/v1/token?grant_type=password", [
+                'email' => $email,
+                'password' => $password,
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+
+                // Update user in local database
+                if (isset($data['user'])) {
+                    DB::table('users')->updateOrInsert(
+                        ['id' => $data['user']['id']],
+                        [
+                            'email' => $data['user']['email'],
+                            'user_metadata' => json_encode($data['user']['user_metadata'] ?? []),
+                            'app_metadata' => json_encode($data['user']['app_metadata'] ?? []),
+                            'created_at' => $data['user']['created_at'],
+                            'updated_at' => $data['user']['updated_at'] ?? now(),
+                        ]
+                    );
+                }
+
+                return [
+                    'success' => true,
+                    'user' => $data['user'] ?? null,
+                    'session' => $data['session'] ?? null,
+                    'access_token' => $data['access_token'] ?? null,
+                    'refresh_token' => $data['refresh_token'] ?? null,
+                ];
+            }
+
+            return [
+                'success' => false,
+                'error' => $response->json()['error_description'] ?? 'Login failed',
+            ];
+        } catch (\Exception $e) {
+            \Log::error('Login failed', [
+                'email' => $email,
+                'error' => $e->getMessage()
+            ]);
+
+            return [
+                'success' => false,
+                'error' => 'Login failed: ' . $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Logout user by invalidating the token
+     */
+    public function logout(string $token): array
+    {
+        try {
+            $response = Http::withHeaders([
+                'apikey' => $this->supabaseAnonKey,
+                'Authorization' => "Bearer {$token}",
+                'Content-Type' => 'application/json',
+            ])->post("{$this->supabaseUrl}/auth/v1/logout");
+
+            if ($response->successful()) {
+                return [
+                    'success' => true,
+                    'message' => 'Logged out successfully',
+                ];
+            }
+
+            return [
+                'success' => false,
+                'error' => $response->json()['msg'] ?? 'Logout failed',
+            ];
+        } catch (\Exception $e) {
+            \Log::error('Logout failed', [
+                'error' => $e->getMessage()
+            ]);
+
+            return [
+                'success' => false,
+                'error' => 'Logout failed: ' . $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
      * Validate JWT token and return user information
      */
     public function validateToken(string $token): ?User
