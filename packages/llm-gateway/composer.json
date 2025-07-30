@@ -1,0 +1,46 @@
+{
+    "name": "kids-qa-ai/llm-gateway",
+    "description": "LLM Gateway service for OpenAI GPT-4o streaming with temperature 0.4",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Kids Q&A AI Team",
+            "email": "dev@kidsqaai.com"
+        }
+    ],
+    "require": {
+        "php": "^8.3",
+        "illuminate/support": "^11.0",
+        "illuminate/contracts": "^11.0",
+        "illuminate/queue": "^11.0",
+        "guzzlehttp/guzzle": "^7.0",
+        "openai-php/client": "^0.8",
+        "react/socket": "^1.12",
+        "textalk/websocket-client": "^1.5"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0",
+        "mockery/mockery": "^1.5",
+        "orchestra/testbench": "^9.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "KidsQaAi\\LlmGateway\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "KidsQaAi\\LlmGateway\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "KidsQaAi\\LlmGateway\\LlmGatewayServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
